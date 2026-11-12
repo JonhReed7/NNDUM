@@ -1,7 +1,7 @@
 import { AuthLayout, AuthHeading, AuthActions } from '../components/AuthLayout.jsx';
 import { AuthField } from '../components/AuthField.jsx';
 
-export function LoginPage({ onSubmit, onGithub, onPasswordReset }) {
+export function LoginPage({ onSubmit, onGithub, onPasswordReset, onDemo }) {
   function handleSubmit(event) {
     event.preventDefault();
     onSubmit?.(new FormData(event.currentTarget));
@@ -26,6 +26,7 @@ export function LoginPage({ onSubmit, onGithub, onPasswordReset }) {
         <AuthActions mode="login" onGithub={onGithub} />
       </form>
       <p className="auth-footer">Нет аккаунта? <a href="#/register">Зарегистрироваться</a></p>
+      {onDemo && <p className="demo-entry"><button type="button" className="text-link" onClick={onDemo}>Посмотреть демо без входа</button></p>}
     </AuthLayout>
   );
 }

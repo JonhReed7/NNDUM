@@ -11,6 +11,7 @@ import '@fontsource/inter/latin-700.css';
 import { App } from './App.jsx';
 import './index.css';
 import './App.css';
+import './Workspace.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode><App /></React.StrictMode>,

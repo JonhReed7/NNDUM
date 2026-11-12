@@ -1,6 +1,6 @@
-export function Brand() {
+export function Brand({ href = '#/login', label = 'DevPulse — вход' }) {
   return (
-    <a className="brand" href="#/login" aria-label="DevPulse — вход">
+    <a className="brand" href={href} aria-label={label}>
       <span className="brand-mark" aria-hidden="true">
         <span /><span /><span />
       </span>
