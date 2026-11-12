@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Brand } from './PromoPanel.jsx';
 import { DesignIcon, Modal, WorkspaceButton } from './WorkspaceUI.jsx';
@@ -11,18 +11,32 @@ const reportLinks = [
   { route: 'methodology', label: 'Методика', symbol: '◇' },
 ];
 
-export function WorkspaceLayout({ route, teams, userName, onNameChange, children }) {
+export function WorkspaceLayout({
+  route,
+  search = '',
+  teams,
+  userName,
+  onNameChange,
+  children,
+}) {
   const compact = route === 'report';
   const [reportsOpen, setReportsOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [popover, setPopover] = useState(null);
   const [modal, setModal] = useState(null);
   const header = useRef(null);
+  const content = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!new URLSearchParams(search).has('section')) {
+      content.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+  }, [route, search]);
 
   useEffect(() => {
     setMobileOpen(false);
     setPopover(null);
-  }, [route]);
+  }, [route, search]);
   useEffect(() => {
     function dismiss(event) {
       if (event.type === 'keydown' && event.key === 'Escape') {
@@ -240,7 +254,14 @@ export function WorkspaceLayout({ route, teams, userName, onNameChange, children
           </div>
         )}
       </aside>
-      <main id="workspace-main" className="workspace-main" aria-labelledby="page-title" key={route}>
+      <main
+        ref={content}
+        id="workspace-main"
+        className="workspace-main"
+        aria-labelledby="page-title"
+        tabIndex={0}
+        key={route}
+      >
         {children}
       </main>
       {modal === 'help' && (

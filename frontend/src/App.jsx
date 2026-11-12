@@ -46,7 +46,7 @@ export function App() {
   }, []);
   useEffect(() => {
     document.title = `${titles[route.name]} — DevPulse`;
-    if (!new URLSearchParams(route.search).has('section')) window.scrollTo(0, 0);
+    if (route.name === 'login' || route.name === 'register') window.scrollTo(0, 0);
   }, [route.name, route.search]);
 
   function navigate(name) {
@@ -85,6 +85,7 @@ export function App() {
     <>
       <WorkspaceLayout
         route={route.name}
+        search={route.search}
         teams={teams}
         userName={userName}
         onNameChange={setUserName}
