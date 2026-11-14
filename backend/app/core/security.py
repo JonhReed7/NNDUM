@@ -30,7 +30,7 @@ def create_access_token(user: User):
 
     token = jwt.encode(
         payload,
-        key=config.JWT_SECRET,
+        key=settings.JWT_SECRET,
         algorithm=os.getenv("JWT_ALGORITHM", "HS256")
     )
 

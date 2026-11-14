@@ -7,11 +7,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from core.config import settings
 
 
-
-
 engine = create_async_engine(
     settings.DATABASE_URL,
-
+    pool_pre_ping=True
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -26,6 +24,6 @@ class Base(DeclarativeBase):
         default=lambda: str(uuid4())
     )
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+# async def get_db():
+#     async with AsyncSessionLocal() as session:
+#         yield session
