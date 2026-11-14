@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite+aiosqlite:///./default.db"
-    JWT_SECRET: str = "default-secret-key"
+    DATABASE_URL: str
+    JWT_SECRET: str
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     GITHUB_CLIENT_ID: str
