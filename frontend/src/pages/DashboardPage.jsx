@@ -105,7 +105,7 @@ export function DashboardPage({ analysis, teamName, onPrint }) {
           <dl className="dashboard-report-stats">
             <div style={artwork('dashboard-vector23')}>
               <dt>Покрытие</dt>
-              <dd>8 из 8 метрик</dd>
+              <dd>9 из 9 метрик</dd>
             </div>
             <div style={artwork('dashboard-vector23')}>
               <dt>Чистота репозитория</dt>
