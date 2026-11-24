@@ -3,14 +3,15 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+
 from sqlalchemy import DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from models.teamMemberModel import TeamMember
-    from models.teamModel import Team
+    from app.models.teamMemberModel import TeamMember
+    from app.models.teamModel import Team
 
 
 class User(Base):
