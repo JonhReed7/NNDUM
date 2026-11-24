@@ -6,6 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 class Settings(BaseSettings):
     DATABASE_URL: str
     JWT_SECRET: str
+    JWT_ALGORITHM: str
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     GITHUB_CLIENT_ID: str
