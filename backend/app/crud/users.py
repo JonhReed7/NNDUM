@@ -3,10 +3,10 @@
 import aiohttp
 import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
-from starlette.responses import RedirectResponse
 
 from app.core.config import settings
 from app.core.security import (
@@ -18,9 +18,13 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user_model import User
-from app.schemas.user_schemas import TokenResponse, UserRead, UserLogin, UserRegister
+from app.schemas.user_schemas import TokenResponse, UserLogin, UserRead, UserRegister
 
 user_router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+class OAuthUrlResponse(BaseModel):
+    url: str
 
 
 def _split_full_name(full_name: str | None) -> tuple[str | None, str | None]:
@@ -105,10 +109,10 @@ async def login_user(payload: UserLogin, db: AsyncSession = Depends(get_db)):
     )
 
 
-@user_router.get("/google/url")
+@user_router.get("/google/url", response_model=OAuthUrlResponse)
 async def get_google_oauth_redirect_uri():
     uri = generate_google_oauth_redirect_uri()
-    return RedirectResponse(uri, status_code=status.HTTP_302_FOUND)
+    return OAuthUrlResponse(url=uri)
 
 
 @user_router.post("/google/callback", response_model=TokenResponse)
@@ -182,10 +186,10 @@ async def handle_google_oauth_code(
     )
 
 
-@user_router.get("/github/url")
+@user_router.get("/github/url", response_model=OAuthUrlResponse)
 async def get_github_oauth_redirect_uri():
     uri = generate_github_oauth_redirect_uri()
-    return RedirectResponse(uri, status_code=status.HTTP_302_FOUND)
+    return OAuthUrlResponse(url=uri)
 
 
 @user_router.post("/github/callback", response_model=TokenResponse)
