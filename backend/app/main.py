@@ -4,7 +4,7 @@ from fastapi import FastAPI
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 
-from crud.repositories import repo_router
+from crud.repositories import analysis_router
 from crud.users import user_router
 from db.base import engine, Base
 
@@ -12,9 +12,11 @@ from db.base import engine, Base
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ВАЖНО: Импортируем ВСЕ модели, чтобы Base.metadata узнала обо всех таблицах
-    from models import userModel, teamModel, teamMemberModel, projectModel, sprintModel
+    from models import user_model, teamModel, teamMemberModel, projectModel, sprintModel
+
 
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     yield
@@ -31,7 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(user_router)
-app.include_router(repo_router)
+app.include_router(analysis_router)
 
 
 @app.get("/health")
