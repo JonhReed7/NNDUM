@@ -1,12 +1,12 @@
-import urllib.parse
+﻿import urllib.parse
 from datetime import datetime, timedelta, UTC
 
 import jwt
 from pwdlib import PasswordHash
 from pwdlib.hashers.argon2 import Argon2Hasher
 
-from core.config import settings
-from models.user_model import User
+from app.core.config import settings
+from app.models.user_model import User
 
 password_hash = PasswordHash((Argon2Hasher(),))
 

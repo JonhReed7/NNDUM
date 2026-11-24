@@ -6,7 +6,7 @@ from typing import List, TYPE_CHECKING
 from sqlalchemy import DateTime, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.base import Base
+from app.db.base import Base
 
 if TYPE_CHECKING:
     from models.sprintModel import Sprint

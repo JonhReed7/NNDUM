@@ -1,4 +1,4 @@
-from typing import Annotated
+﻿from typing import Annotated
 
 import aiohttp
 import jwt
@@ -8,17 +8,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from core.config import settings
-from core.security import (
+from app.core.config import settings
+from app.core.security import (
     create_access_token,
     generate_github_oauth_redirect_uri,
     generate_google_oauth_redirect_uri,
     hash_password,
     verify_password,
 )
-from db.session import get_db
-from models.user_model import User
-from schemas.user_schemas import TokenResponse, UserRead, UserLogin, UserRegister
+from app.db.session import get_db
+from app.models.user_model import User
+from app.schemas.user_schemas import TokenResponse, UserRead, UserLogin, UserRegister
 
 user_router = APIRouter(prefix="/auth", tags=["Auth"])
 

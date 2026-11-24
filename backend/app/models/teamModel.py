@@ -1,4 +1,4 @@
-
+﻿
 from __future__ import annotations
 from datetime import datetime
 from typing import List, TYPE_CHECKING
@@ -6,12 +6,12 @@ from typing import List, TYPE_CHECKING
 from sqlalchemy import DateTime, func, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
-from db.base import Base
+from app.db.base import Base
 
 
 if TYPE_CHECKING:
-    from models.projectModel import Project
-    from models.userModel import User
+    from app.models.projectModel import Project
+    from app.models.user_model import User
     from models.teamMemberModel import TeamMember
 
 class Team(Base):

@@ -4,15 +4,15 @@ from fastapi import FastAPI
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 
-from crud.repositories import analysis_router
-from crud.users import user_router
-from db.base import engine, Base
+from app.crud.repositories import analysis_router
+from app.crud.users import user_router
+from app.db.base import engine, Base
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ВАЖНО: Импортируем ВСЕ модели, чтобы Base.metadata узнала обо всех таблицах
-    from models import user_model, teamModel, teamMemberModel, projectModel, sprintModel
+
+    from app.models import user_model, teamModel, teamMemberModel, projectModel, sprintModel
 
 
     async with engine.begin() as conn:
