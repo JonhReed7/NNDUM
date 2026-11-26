@@ -1,4 +1,6 @@
 import { Github } from 'lucide-react';
+import googleIcon from '../assets/figma/auth-google.svg';
+import { startOAuth } from '../services/oauth.js';
 import { PromoPanel } from './PromoPanel.jsx';
 
 export function AuthLayout({ mode, children }) {
@@ -22,18 +24,46 @@ export function AuthHeading({ eyebrow, title, description }) {
   );
 }
 
-export function AuthActions({ mode, onGithub }) {
+export function AuthActions({ mode, error, pending, submit }) {
   const registration = mode === 'register';
+  const submitLabel = registration ? 'Зарегистрироваться' : 'Войти';
+  const pendingLabel = registration ? 'Регистрируем…' : 'Выполняем вход…';
+  const busy = Boolean(pending);
+
+  function signInWith(provider, form) {
+    if (busy) return;
+    const remember = form.elements.namedItem('remember')?.checked ?? false;
+    submit(provider, (signal) => startOAuth(provider, mode, remember, signal));
+  }
+
   return (
     <div className="auth-actions">
-      <button className="button button--primary" type="submit">
-        {registration ? 'Зарегистрироваться' : 'Войти'}
+      {error && <p className="field-error" role="alert">{error}</p>}
+      {pending === 'callback' && <p className="auth-status" role="status">Завершаем вход…</p>}
+      <button className="button button--primary" type="submit" disabled={busy}>
+        {pending === 'email' ? pendingLabel : submitLabel}
       </button>
       <div className="divider"><span>или</span></div>
-      <button className="button button--github" type="button" onClick={onGithub}>
-        <Github size={20} strokeWidth={1.8} aria-hidden="true" />
-        {registration ? 'Зарегистрироваться через GitHub' : 'Войти через GitHub'}
-      </button>
+      <div className="auth-providers">
+        <button
+          className="button button--github"
+          type="button"
+          disabled={busy}
+          onClick={(event) => signInWith('github', event.currentTarget.form)}
+        >
+          <Github size={20} strokeWidth={1.8} aria-hidden="true" />
+          {pending === 'github' ? 'Переходим в GitHub…' : `${submitLabel} через GitHub`}
+        </button>
+        <button
+          className="button button--google"
+          type="button"
+          disabled={busy}
+          onClick={(event) => signInWith('google', event.currentTarget.form)}
+        >
+          <img src={googleIcon} alt="" />
+          {pending === 'google' ? 'Переходим в Google…' : `${submitLabel} через Google`}
+        </button>
+      </div>
     </div>
   );
 }
