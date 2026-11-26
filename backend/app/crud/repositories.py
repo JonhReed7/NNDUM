@@ -1,13 +1,12 @@
-﻿import jwt
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy import select
+﻿from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from app.core.dependencies import get_current_user
 from app.db.session import get_db
-from app.models.analyseModel import Analyse
+from app.models.analyse_model import Analyse
 from app.models.user_model import User
+from app.repositories.analysis_repository import AnalysisRepository
 from app.schemas.analysis_schemas import AnalysisResponse, AnalysisCreate
 
 from app.services.analyzer import run_repository_analysis
@@ -56,7 +55,7 @@ async def get_analysis_status(
     analysis_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    analysis = await db.scalar(select(Analyse).where(Analyse.id == analysis_id))
+    analysis = await AnalysisRepository(db).get(analysis_id)
     if not analysis:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

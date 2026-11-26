@@ -1,4 +1,4 @@
-
+﻿
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 if TYPE_CHECKING:
-    from app.models.teamModel import Team
+    from app.models.team_model import Team
     from app.models.user_model import User
 
 class TeamMember(Base):

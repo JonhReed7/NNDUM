@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 if TYPE_CHECKING:
-    from app.models.projectModel import Project
+    from app.models.project_model import Project
 
 class Sprint(Base):
     __tablename__ = 'sprints'

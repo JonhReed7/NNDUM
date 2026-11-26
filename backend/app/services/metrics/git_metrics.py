@@ -5,6 +5,10 @@ from pathlib import PurePosixPath
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydriller import Commit, ModificationType
+from app.schemas.metrics_schemas import (
+    ChangesVolumeDistribution, CommitMessageQuality, DeadlineActivity,
+    RepositoryCleanliness, WorkRegularity,
+)
 
 
 
@@ -98,7 +102,7 @@ def _classify_junk_path(file_path: str) -> str | None:
     return None
 
 
-def calculate_repository_cleanliness(commits: list[Commit]) -> dict:
+def calculate_repository_cleanliness(commits: list[Commit]) -> RepositoryCleanliness:
     """
     Метрика №6: Чистота репозитория.
     Проверяет, попадали ли в коммиты за спринт зависимости, виртуальные окружения,
@@ -118,7 +122,6 @@ def calculate_repository_cleanliness(commits: list[Commit]) -> dict:
         commit_has_junk = False
 
         for mod_file in commit.modified_files:
-            # Если файл удаляют (чистят репозиторий), это не нарушение
             if mod_file.change_type == ModificationType.DELETE:
                 continue
 
@@ -131,7 +134,6 @@ def calculate_repository_cleanliness(commits: list[Commit]) -> dict:
                 commit_has_junk = True
                 violations_by_category[category] += 1
 
-                # Сохраняем до 15 уникальных примеров для отчета
                 if file_path not in seen_dirty_paths and len(dirty_examples) < 15:
                     seen_dirty_paths.add(file_path)
                     dirty_examples.append({
@@ -151,7 +153,7 @@ def calculate_repository_cleanliness(commits: list[Commit]) -> dict:
         else 100.0
     )
 
-    return {
+    return RepositoryCleanliness.model_validate({
         "is_clean": dirty_commits_count == 0,
         "cleanliness_percent": cleanliness_percent,
         "total_checked_commits": total_commits,
@@ -160,7 +162,7 @@ def calculate_repository_cleanliness(commits: list[Commit]) -> dict:
             k: v for k, v in violations_by_category.items() if v > 0
         },
         "dirty_examples": dirty_examples,
-    }
+    })
 
 
 
@@ -170,7 +172,6 @@ def _is_commit_message_meaningful(message: str) -> tuple[bool, str | None]:
     Возвращает (True, None), если сообщение хорошее,
     или (False, "причина"), если сообщение плохое.
     """
-    # Берем только первую строку (заголовок коммита)
     subject = message.strip().splitlines()[0].strip() if message.strip() else ""
 
     if not subject:
@@ -184,7 +185,6 @@ def _is_commit_message_meaningful(message: str) -> tuple[bool, str | None]:
     if len(set(subject.lower().replace(" ", ""))) <= 2:
         return False, "Набор повторяющихся символов"
 
-    # Очищаем строку от лишних символов для проверки по словарю и словам
     cleaned = re.sub(r"[^\w\sа-яА-ЯёЁ-]", "", subject.lower()).strip()
 
     # 3. Проверка на стоп-фразы ("fix bug", "update", "правки")
@@ -199,7 +199,7 @@ def _is_commit_message_meaningful(message: str) -> tuple[bool, str | None]:
     return True, None
 
 
-def calculate_commit_messages_quality(commits: list[Commit]) -> dict:
+def calculate_commit_messages_quality(commits: list[Commit]) -> CommitMessageQuality:
     """
     Метрика №3: Качество сообщений коммитов.
     Возвращает долю информативных коммитов и список проблемных примеров для разбора.
@@ -239,18 +239,18 @@ def calculate_commit_messages_quality(commits: list[Commit]) -> dict:
         else 100.0
     )
 
-    return {
+    return CommitMessageQuality.model_validate({
         "total_evaluated_commits": total_evaluated,
         "meaningful_commits": meaningful_count,
         "quality_percent": quality_share,
         "conventional_commits_count": conventional_count,
         "bad_examples": bad_examples,
-    }
+    })
 
 
 
 
-def calculate_changes_volume_distribution(commits: list[Commit]) -> dict:
+def calculate_changes_volume_distribution(commits: list[Commit]) -> ChangesVolumeDistribution:
     """
     Метрика №2: Распределение объёма изменений (доля изменённых символов по авторам за спринт).
     Возвращает данные, готовые для отрисовки круговой диаграммы на фронтенде.
@@ -259,17 +259,13 @@ def calculate_changes_volume_distribution(commits: list[Commit]) -> dict:
     total_chars = 0
 
     for commit in commits:
-        # Пропускаем merge-коммиты, чтобы не дублировать чужие изменения при слиянии веток
         if commit.merge:
             continue
 
-        # Используем email как уникальный идентификатор автора (или commit.author.name)
         author_key = commit.author.email
         commit_chars = 0
 
         for mod_file in commit.modified_files:
-            # Пропускаем бинарные файлы (картинки, архивы, скомпилированные файлы),
-            # у них diff_parsed пустой или не несет текстового кода
             if not mod_file.diff_parsed:
                 continue
 
@@ -295,10 +291,10 @@ def calculate_changes_volume_distribution(commits: list[Commit]) -> dict:
             "share_percent": share_percent,
         })
 
-    return {
+    return ChangesVolumeDistribution.model_validate({
         "total_changed_chars": total_chars,
         "authors": distribution,
-    }
+    })
 
 
 
@@ -318,7 +314,7 @@ def calculate_work_regularity(
     commits: list[Commit],
     timezone_name: str = "Asia/Yekaterinburg",
     sprint_days: int | None = None,
-) -> dict:
+) -> WorkRegularity:
     """
     Метрика №4: Регулярность работы (тепловая карта активности).
     Группирует коммиты по дням недели, часам и календарным датам,
@@ -326,7 +322,6 @@ def calculate_work_regularity(
     """
     target_tz = _get_timezone(timezone_name)
 
-    # Счётчики по дням недели (0 = Пн ... 6 = Вс)
     commits_by_weekday = [0] * 7
     # Матрица 7x24 для детальной тепловой карты (день недели -> час 0..23)
     heatmap_matrix = [[0 for _ in range(24)] for _ in range(7)]
@@ -368,7 +363,6 @@ def calculate_work_regularity(
             "share_percent": share,
         })
 
-    # Список точек для 2D тепловой карты [день_недели, час, количество] (стандартный формат ECharts)
     heatmap_points = []
     for day_idx in range(7):
         for hour in range(24):
@@ -381,21 +375,18 @@ def calculate_work_regularity(
                     "commits_count": count,
                 })
 
-    # Сортируем календарные даты по возрастанию
     daily_timeline = [
         {"date": d, "commits_count": commits_by_date[d]}
         for d in sorted(commits_by_date.keys())
     ]
 
-    # Коэффициент регулярности: отношение активных дней к длительности периода (по умолчанию 7 дней)
     active_days_count = len(commits_by_date) if sprint_days else sum(1 for c in commits_by_weekday if c > 0)
     denominator = sprint_days if (sprint_days and sprint_days > 0) else 7
     regularity_coefficient = round(min(active_days_count / denominator, 1.0), 2)
 
-    # Находим пиковый день недели
     peak_day = max(by_weekday_list, key=lambda x: x["commits_count"]) if total_commits > 0 else None
 
-    return {
+    return WorkRegularity.model_validate({
         "timezone": timezone_name,
         "total_commits": total_commits,
         "active_days_count": active_days_count,
@@ -404,12 +395,11 @@ def calculate_work_regularity(
         "by_weekday": by_weekday_list,
         "daily_timeline": daily_timeline,
         "heatmap_2d": heatmap_points,
-    }
+    })
 
 
 
 def _ensure_aware_dt(dt: datetime, default_tz: tzinfo) -> datetime:
-    """Гарантирует, что у datetime есть часовой пояс (aware)."""
     if dt.tzinfo is None:
         return dt.replace(tzinfo=default_tz)
     return dt
@@ -420,7 +410,7 @@ def calculate_deadline_activity(
     deadline: datetime | None,
     timezone_name: str = "Asia/Yekaterinburg",
     last_hours_window: int = 24,
-) -> dict:
+) -> DeadlineActivity:
     """
     Метрика №8: Активность перед дедлайном.
     Считает:
@@ -468,7 +458,7 @@ def calculate_deadline_activity(
             commit_utc = commit_aware.astimezone(timezone.utc)
             hours_left = (deadline_utc - commit_utc).total_seconds() / 3600
 
-            # Учитываем коммиты, сделанные до дедлайна (включая небольшой допуск 0 ч)
+            # Учитываем коммиты, сделанные до дедлайна 
             if hours_left >= 0:
                 hours_before_deadline_list.append(round(hours_left, 2))
                 if hours_left <= last_hours_window:
@@ -500,7 +490,7 @@ def calculate_deadline_activity(
             "closest_commit_hours_before_deadline": min_hours_before,
         }
 
-    return {
+    return DeadlineActivity.model_validate({
         "timezone": timezone_name,
         "total_commits": total_commits,
         "time_windows": {
@@ -518,4 +508,4 @@ def calculate_deadline_activity(
             },
         },
         "deadline_proximity": deadline_stats,
-    }
+    })

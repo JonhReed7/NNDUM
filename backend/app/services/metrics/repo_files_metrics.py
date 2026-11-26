@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+from app.schemas.metrics_schemas import ReadmeCompleteness
 
 # Паттерны заголовков для обязательных разделов (поддержка RU и EN)
 INSTALL_RUN_HEADERS = re.compile(
@@ -58,7 +59,7 @@ def _extract_sections(markdown_text: str) -> tuple[str, list[tuple[str, str]]]:
     return "\n".join(intro_lines).strip(), sections
 
 
-def calculate_readme_completeness(repo_dir: str | Path) -> dict:
+def calculate_readme_completeness(repo_dir: str | Path) -> ReadmeCompleteness:
     """
     Метрика №5: Полнота README.
     Проверяет наличие файла README в корне репозитория и трёх ключевых разделов:
@@ -76,7 +77,7 @@ def calculate_readme_completeness(repo_dir: str | Path) -> dict:
             break
 
     if not readme_file:
-        return {
+        return ReadmeCompleteness.model_validate({
             "has_readme": False,
             "file_name": None,
             "completeness_percent": 0.0,
@@ -88,7 +89,7 @@ def calculate_readme_completeness(repo_dir: str | Path) -> dict:
             "missing_sections": [
                 "Файл README.md отсутствует в корне репозитория"
             ],
-        }
+        })
 
     content = readme_file.read_text(encoding="utf-8", errors="ignore").strip()
     intro_text, sections = _extract_sections(content)
@@ -132,10 +133,10 @@ def calculate_readme_completeness(repo_dir: str | Path) -> dict:
     if not has_structure_overview:
         missing_sections.append("Краткий обзор структуры проекта")
 
-    return {
+    return ReadmeCompleteness.model_validate({
         "has_readme": True,
         "file_name": readme_file.name,
         "completeness_percent": completeness_percent,
         "checks": checks,
         "missing_sections": missing_sections,
-    }
+    })

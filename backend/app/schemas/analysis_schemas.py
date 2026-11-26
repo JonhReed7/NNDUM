@@ -1,8 +1,8 @@
-from datetime import datetime
-from typing import Any
+﻿from datetime import datetime
 from pydantic import BaseModel, HttpUrl, ConfigDict
 
-from app.models.analyseModel import AnalysisStatus
+from app.models.analyse_model import AnalysisStatus
+from app.schemas.metrics_schemas import AnalysisResult
 
 
 class AnalysisCreate(BaseModel):
@@ -13,7 +13,7 @@ class AnalysisResponse(BaseModel):
     id: str
     repo_url: str
     status: AnalysisStatus
-    metrics_result: dict[str, Any] | None = None
+    metrics_result: AnalysisResult | None = None
     error_message: str | None = None
     created_at: datetime
     completed_at: datetime | None = None

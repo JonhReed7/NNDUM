@@ -4,6 +4,10 @@ from statistics import median
 from urllib.parse import urlparse
 import httpx
 from pydriller import Commit
+from app.schemas.metrics_schemas import (
+    MutualPullRequestReview, PullRequestResponseTimes, StaleBranches,
+    TeamEngagement,
+)
 
 
 def _parse_repo_owner_and_name(repo_url: str) -> tuple[str, str]:
@@ -78,7 +82,7 @@ async def fetch_github_activity_logins(
                     if login:
                         pr_authors.add(login.lower())
 
-                # Проверяем ревью по каждому свежему PR (это пригодится и для Метрик №7, №9, №14)
+                # Проверяем ревью по каждому свежему PR 
                 if _is_within_sprint(pr.get("updated_at"), sprint_start, sprint_end):
                     pr_number = pr["number"]
                     reviews_resp = await client.get(f"{base_url}/pulls/{pr_number}/reviews")
@@ -89,7 +93,7 @@ async def fetch_github_activity_logins(
                                 if rev_login:
                                     commenters.add(rev_login.lower())
 
-        # 3. Получаем комментарии в Issues и Pull Requests (общая лента комментариев репо)
+        # 3. Получаем комментарии в Issues и Pull Requests 
         comments_params = {"per_page": 100}
         if sprint_start:
             comments_params["since"] = sprint_start.isoformat()
@@ -113,7 +117,7 @@ def calculate_team_engagement(
     commits: list[Commit],
     github_activity: dict,
     team_members: list[dict] | None = None,
-) -> dict:
+) -> TeamEngagement:
     """
     Метрика №1: Вовлечённость участников.
     Считает долю участников команды, у которых за спринт был хотя бы 1 коммит, PR или комментарий/ревью.
@@ -145,7 +149,6 @@ def calculate_team_engagement(
         emails = {e.lower() for e in member.get("emails", [])}
 
         has_commit = bool(emails & active_commit_emails) or (
-            # Фоллбэк: если в GitHub noreply-почте зашит логин (например, 12345+annadev@users.noreply.github.com)
             bool(login) and any(login in email for email in active_commit_emails)
         )
         has_pr = login in pr_authors
@@ -171,12 +174,12 @@ def calculate_team_engagement(
         else 0.0
     )
 
-    return {
+    return TeamEngagement.model_validate({
         "total_team_members": total_members,
         "active_members_count": active_members_count,
         "engagement_percent": engagement_percent,
         "members": members_report,
-    }
+    })
 
 
 
@@ -185,7 +188,7 @@ async def calculate_stale_branches(
     github_token: str | None = None,
     stale_days_threshold: int = 7,
     ignore_branches: set[str] | None = None,
-) -> dict:
+) -> StaleBranches:
     """
     Метрика №10: Ветки без активности.
     Возвращает количество и список открытых веток, в которых не было новых коммитов
@@ -216,7 +219,6 @@ async def calculate_stale_branches(
 
         raw_branches = branches_resp.json()
 
-        # Фильтруем базовые ветки (main, master и т.д.)
         target_branches = [
             b for b in raw_branches
             if b.get("name") not in ignore_branches
@@ -233,7 +235,7 @@ async def calculate_stale_branches(
 
             commit_data = commit_resp.json()
             commit_info = commit_data.get("commit", {})
-            # Берем дату коммитера (когда коммит реально попал в ветку)
+   
             date_str = (
                 commit_info.get("committer", {}).get("date")
                 or commit_info.get("author", {}).get("date")
@@ -278,13 +280,13 @@ async def calculate_stale_branches(
         else 0.0
     )
 
-    return {
+    return StaleBranches.model_validate({
         "stale_days_threshold": stale_days_threshold,
         "total_open_feature_branches": total_feature_branches,
         "stale_branches_count": stale_count,
         "stale_branches_share_percent": stale_share_percent,
         "stale_branches": stale_branches,
-    }
+    })
 
 
 def _parse_iso_dt(dt_str: str | None) -> datetime | None:
@@ -311,7 +313,7 @@ async def calculate_pr_first_response_time(
     github_token: str | None = None,
     sprint_start: datetime | None = None,
     sprint_end: datetime | None = None,
-) -> dict:
+) -> PullRequestResponseTimes:
     """
     Метрика №7: Время до первого отклика на PR.
     Считает время (в часах и минутах) от создания PR до первого ревью или комментария от коллеги.
@@ -334,7 +336,7 @@ async def calculate_pr_first_response_time(
                 f"Не удалось получить список PR (HTTP {prs_resp.status_code})"
             )
 
-        # Отбираем PR, созданные в рамках спринта (и исключаем черновики-драфты, если нужно)
+        # Отбираем PR, созданные в рамках спринта 
         sprint_prs = [
             pr for pr in prs_resp.json()
             if _is_within_sprint(pr.get("created_at"), sprint_start, sprint_end)
@@ -424,14 +426,14 @@ async def calculate_pr_first_response_time(
     avg_hours = round(sum(response_hours_list) / len(response_hours_list), 2) if response_hours_list else None
     med_hours = round(median(response_hours_list), 2) if response_hours_list else None
 
-    return {
+    return PullRequestResponseTimes.model_validate({
         "total_prs_in_sprint": len(pr_results),
         "answered_prs_count": len(answered_prs),
         "unanswered_prs_count": len(unanswered_prs),
         "average_response_time_hours": avg_hours,
         "median_response_time_hours": med_hours,
         "prs": pr_results,
-    }
+    })
 
 
 async def calculate_mutual_pr_review(
@@ -440,7 +442,7 @@ async def calculate_mutual_pr_review(
     sprint_start: datetime | None = None,
     sprint_end: datetime | None = None,
     team_members: list[dict] | None = None,
-) -> dict:
+) -> MutualPullRequestReview:
     """
     Метрика №9: Взаимное ревью PR.
     Считает долю участников команды, которые за спринт оставили хотя бы один
@@ -591,7 +593,7 @@ async def calculate_mutual_pr_review(
         else 0.0
     )
 
-    return {
+    return MutualPullRequestReview.model_validate({
         "total_team_members": total_members,
         "reviewers_count": reviewers_in_team_count,
         "mutual_review_share_percent": mutual_review_share,
@@ -599,4 +601,4 @@ async def calculate_mutual_pr_review(
         "reviewed_prs_count": reviewed_prs_count,
         "reviewed_prs_share_percent": reviewed_prs_share,
         "members": members_breakdown,
-    }
+    })

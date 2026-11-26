@@ -1,4 +1,4 @@
-
+﻿
 from __future__ import annotations
 from datetime import datetime
 from typing import List, TYPE_CHECKING
@@ -9,8 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from models.sprintModel import Sprint
-    from models.teamModel import Team
+    from app.models.sprint_model import Sprint
+    from app.models.team_model import Team
 
 class Project(Base):
     __tablename__ = 'projects'

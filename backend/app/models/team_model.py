@@ -10,14 +10,14 @@ from app.db.base import Base
 
 
 if TYPE_CHECKING:
-    from app.models.projectModel import Project
+    from app.models.project_model import Project
     from app.models.user_model import User
-    from models.teamMemberModel import TeamMember
+    from app.models.team_member_model import TeamMember
 
 class Team(Base):
     __tablename__ = "teams"
     name: Mapped[str] = mapped_column(unique=True, nullable=False)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    owner_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
