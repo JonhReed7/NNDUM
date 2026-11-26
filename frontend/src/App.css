@@ -45,10 +45,16 @@
 .button--primary { color: white; background: var(--blue); box-shadow: 0 6px 14px #2563eb24; }
 .button--primary:hover { background: #1d55d4; box-shadow: 0 6px 16px #2563eb35; }
 .button--primary:active { background: #1b4ec3; }
+.auth-actions .button:disabled { opacity: .7; cursor: wait; }
 .divider { display: flex; align-items: center; gap: 14px; margin: 8px 0; color: #a5adb8; font-size: 12px; line-height: 20px; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e7edf4; }
 .button--github { border-color: #d5e3f1; color: #214780; background: white; box-shadow: 0 1px 2px #28466b03; }
 .button--github:hover { background: #f5f9ff; border-color: #afcaec; }
+.auth-providers { display: grid; gap: 10px; }
+.auth-providers :is(img, svg) { flex-shrink: 0; }
+.button--google { min-height: 47px; gap: 9px; border-color: #bfdbfe; border-radius: 10px; color: #1e40af; background: white; }
+.button--google:hover { background: #f5f9ff; }
+.auth-status { margin: 0 0 8px; color: var(--muted); font-size: 14px; line-height: 20px; }
 .auth-footer { margin: 24px 0 0; color: var(--muted); font-size: 14px; line-height: 20px; text-align: center; }
 .auth-footer a { font-weight: 600; }
 .auth-page--register .form-panel { padding-top: 72px; padding-bottom: 72px; }
@@ -57,6 +63,7 @@
 .field--error input { border-color: #e8868c; box-shadow: 0 0 0 1px #e8868c0c; }
 .field--error input:focus { border-color: var(--error); box-shadow: 0 0 0 3px #dd525812; }
 .field-error { margin: 6px 0 0; color: var(--error); font-size: 12px; line-height: 16px; }
+.auth-actions > .field-error { margin: 0 0 8px; }
 .terms { margin-top: 16px; font-size: 12px; }
 .terms .text-link { margin-left: 4px; font-size: 12px; }
 

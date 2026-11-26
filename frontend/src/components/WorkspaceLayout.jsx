@@ -17,6 +17,7 @@ export function WorkspaceLayout({
   teams,
   userName,
   onNameChange,
+  onLogout,
   children,
 }) {
   const compact = route === 'report';
@@ -170,7 +171,7 @@ export function WorkspaceLayout({
                   >
                     Настройки профиля
                   </button>
-                  <a href="#/login">Выйти</a>
+                  <button type="button" onClick={onLogout}>Выйти</button>
                 </div>
               )}
             </div>

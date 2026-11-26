@@ -9,10 +9,13 @@ import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
 import '@fontsource/inter/latin-700.css';
 import { App } from './App.jsx';
+import { consumeOAuthCallback } from './services/oauth.js';
 import './index.css';
 import './App.css';
 import './Workspace.css';
 
+const oauthCallback = consumeOAuthCallback();
+
 createRoot(document.getElementById('root')).render(
-  <React.StrictMode><App /></React.StrictMode>,
+  <React.StrictMode><App oauthCallback={oauthCallback} /></React.StrictMode>,
 );
